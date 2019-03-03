@@ -5,27 +5,189 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
 integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
 crossorigin=""/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="style.css">
 
 <html>
+<script src ="index.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   <head>
     <title>2019</title>
     <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
   </head>
   <body>
-    <div>2019 Fast</div>
-    <div id="mapid" style="height:500px;"></div>
+    <h1 style="text-align: center;">FAST</h1>
+    <div id="mapid" style="height:800px;"></div>
   </body>
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
   integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
   crossorigin=""></script>
   <script>
-      var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+      function getColor(d) {
+        return d > 1000 ? '#230C33' :
+            d > 500  ? '#5F4E6A' :
+            d > 200  ? '#311A48' :
+            d > 100  ? '#957AB0' :
+            d > 50   ? '#6F5C86' :
+            d > 20   ? '#877A8F' :
+            d > 10   ? '#624438' :
+                        '#AFA6B4';
+        }
+        function style(feature) {
+            return {
+                fillColor: getColor(feature.properties.density),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        }
 
-      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        function highlightFeature(e) {
+            var layer = e.target;
+            layer.setStyle( {
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            console.log(e);
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+            // infoDisplay.update(layer.feature.properties);
+        }
+
+        // function click(e) {
+        //     var layer = e.target;
+        //     var html = '<div>test1</div>';
+        //     layer.appendChild(html);
+        // }
+
+        function resetHighlight(e) {
+            geo.resetStyle(e.target);
+            // infoDisplay.update();
+        }
+
+        function onEachState(feature, layer) {
+            layer.on({
+                mouseover : highlightFeature,
+                mouseout: resetHighlight,
+                // click: click
+            })
+            var prep = feature.properties.precipitation;
+            var sun = feature.properties.sunshine;
+            var temp = feature.properties.temperature;
+            var area = feature.properties.harvest;
+            var prod = feature.properties.prediction;
+            var elementpop = 
+            '<div class="container">\
+                <h4>'+feature.properties.name+'</h4>\
+                <div style="flex-direction: row; display: flex; align-items: center;">\
+                    <p><b>RAIN:</b></p>\
+                    <div><input type="text" id="rain_edit" style="width:80px;" class="form-control" value="' + prep + '" disabled></div>\
+                    <p>inch</p>\
+                </div>\
+                <div style="flex-direction: row; display: flex; align-items: center;">\
+                    <p><b>SUN:</b></p>\
+                    <div><input type="text" id="sun_edit" style="width:80px;" class="form-control" value="' + sun + '" disabled></div>\
+                    <p>%</p>\
+                </div>\
+                <div style="flex-direction: row; display: flex; align-items: center;">\
+                    <p><b>TEMPERATURE:</b></p>\
+                    <div><input type="text" id="temp_edit" style="width:80px;" class="form-control" value="' + temp + '" disabled></div>\
+                    <p>F</p>\
+                </div>\
+                <div style="flex-direction: row; display: flex; align-items: center;">\
+                    <p><b>AREA:</b></p>\
+                    <div><input type="text" id="area_edit" style="width:80px;" class="form-control" value="' + area + '" disabled></div>\
+                    <p>acres</p>\
+                </div>\
+                <hr>\
+                <div style="flex-direction: row; display: flex; align-items: center;">\
+                    <p><b>PRODUCTION:</b></p>\
+                    <div><input type="text" id="produ_edit" style="width:80px;" class="form-control" value="' + prod + '" disabled></div>\
+                    <p>bu</p>\
+                </div>\
+                <div class="row" style="flex-direction: row; display: flex; align-items: center;justify-content: center;"><button type="button" class="btn btn-outline-primary" id="button-edit" onClick=clickButton()>Edit</button></div>\
+            \</div>';
+
+            layer.bindPopup(elementpop);
+            $('#button-edit').click(function(){
+
+                $.ajax({
+                    url:"/gb",
+                    success: function(data) {
+                        console.log(response.data);
+                    },
+                    error: function(request, status, error) {
+                        console.log("fail");
+                    }
+                });
+            });
+        }
+
+        var toggleedit = false;
+        function clickButton() {
+            toggleedit = !toggleedit;
+            var rainEdit = document.getElementById("rain_edit");
+            var sunEdit = document.getElementById("sun_edit");
+            var tempEdit = document.getElementById("temp_edit");
+            var areaEdit = document.getElementById("area_edit");
+            if (toggleedit) {
+                rainEdit.disabled = false;
+                sunEdit.disabled = false;
+                tempEdit.disabled = false;
+                areaEdit.disabled = false;
+                // rainEdit.style.display = "block";
+            } else {
+                // rainEdit.style.display = "none";
+                rainEdit.disabled = true;
+                sunEdit.disabled = true;
+                tempEdit.disabled = true;
+                areaEdit.disabled = true;
+            }
+        }
+        
+        var mymap = L.map('mapid').setView([39.82, -98.58], 5);
+        var base = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
           attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
           maxZoom: 18,
           id: 'mapbox.streets',
           accessToken: 'pk.eyJ1IjoiY2ljaW1hIiwiYSI6ImNqc3JydHBiMDBvcWg0NHBhYnJndHN2ZjgifQ.qaz_kJou91y82MKOL9lnFw'
       }).addTo(mymap);
+
+    // var littleton = L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.'),
+    //     denver    = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.'),
+    //     aurora    = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.'),
+    //     golden    = L.marker([39.77, -105.23]).bindPopup('This is Golden, CO.');
+
+    // var cities = L.layerGroup([littleton, denver, aurora, golden]);
+
+      var geo = L.geoJson(statesData, {
+          style: style,
+          onEachFeature: onEachState
+        }).addTo(mymap);
+
+        // var overlayMaps = {
+        //     "Cities": cities
+        // };
+        // var infoDisplay = L.control.layers(geo, overlayMaps).addTo(mymap);
+        // infoDisplay.onAdd = function(map) {
+        //     document.getElementById('test') = L.DomUtil.create('div', 'infoDisplay');
+        //     this.update();
+        //     return this._div;
+        // }
+
+        // infoDisplay.update = function (props) {
+        // document.getElementById('infoDisplay') = '<div style="background-color:white;"><h4>US Population Density</h4>' +  (props ?
+        // '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
+        // : 'Hover over a state </div>');
+        // };
+
+        // infoDisplay.addTo(mymap);
   </script>
 </html>
